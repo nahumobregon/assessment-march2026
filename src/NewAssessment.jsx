@@ -122,6 +122,10 @@ const SECTIONS = [
 ];
 
 function NewAssessment() {
+  const [step, setStep] = useState('contact'); // 'contact' | 'questions'
+  const [contactInfo, setContactInfo] = useState({ name: '', email: '', whatsapp: '' });
+  const [contactError, setContactError] = useState('');
+
   const [currentSectionIdx, setCurrentSectionIdx] = useState(0);
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [answers, setAnswers] = useState({});
@@ -136,11 +140,28 @@ function NewAssessment() {
 
   const progress = (completedQuestions / totalQuestions) * 100;
 
+  const handleContactSubmit = (e) => {
+    e.preventDefault();
+    if (!contactInfo.name.trim()) {
+      setContactError('El nombre es obligatorio.');
+      return;
+    }
+    if (!contactInfo.email.trim() && !contactInfo.whatsapp.trim()) {
+      setContactError('Por favor proporciona un correo o número de WhatsApp.');
+      return;
+    }
+    setContactError('');
+    setStep('questions');
+  };
+
   const submitAssessment = async (finalAnswers) => {
     setLoading(true);
 
     const payload = {
       assessmentType: 'new_detailed',
+      name: contactInfo.name,
+      email: contactInfo.email,
+      whatsapp: contactInfo.whatsapp,
       ...finalAnswers,
       submittedAt: new Date().toISOString()
     };
@@ -221,9 +242,64 @@ function NewAssessment() {
           <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: 'var(--primary)' }}>¡Gracias por llenar el cuestionario!</h1>
           <p className="subtitle" style={{ fontSize: '1.2rem' }}>Tus respuestas han sido registradas exitosamente.</p>
           <button className="submit-btn" style={{ marginTop: '2rem' }} onClick={() => window.location.reload()}>
-            Iniciar
+            Iniciar otro diagnóstico
           </button>
         </div>
+      </div>
+    );
+  }
+
+  if (step === 'contact') {
+    return (
+      <div className="container">
+        <div className="glass-card" style={{ maxWidth: '500px', margin: '0 auto', textAlign: 'left' }}>
+          <h1 style={{ marginBottom: '1rem' }}>Información de Contacto</h1>
+          <p className="subtitle">Para generar y enviarte tu diagnóstico personalizado, por favor comparte tus datos.</p>
+          
+          <form onSubmit={handleContactSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <label>Nombre *</label>
+              <input 
+                type="text" 
+                value={contactInfo.name} 
+                onChange={e => setContactInfo({...contactInfo, name: e.target.value})} 
+                placeholder="Tu nombre completo"
+                style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: 'white' }}
+              />
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <label>Correo Electrónico</label>
+              <input 
+                type="email" 
+                value={contactInfo.email} 
+                onChange={e => setContactInfo({...contactInfo, email: e.target.value})} 
+                placeholder="ejemplo@correo.com"
+                style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: 'white' }}
+              />
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <label>WhatsApp</label>
+              <input 
+                type="tel" 
+                value={contactInfo.whatsapp} 
+                onChange={e => setContactInfo({...contactInfo, whatsapp: e.target.value})} 
+                placeholder="+52 55..."
+                style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: 'white' }}
+              />
+            </div>
+
+            {contactError && <p style={{ color: '#ff4d4d', fontSize: '0.9rem' }}>{contactError}</p>}
+            
+            <button type="submit" className="submit-btn" style={{ marginTop: '1rem' }}>
+              Comenzar Diagnóstico
+            </button>
+          </form>
+        </div>
+        <p style={{ textAlign: 'center', marginTop: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+          Powered by <strong>fiftyai.mx</strong>
+        </p>
       </div>
     );
   }
