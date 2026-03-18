@@ -149,7 +149,7 @@ function NewAssessment() {
     console.log('📦 [N8N DEBUG] Datos a enviar (Payload):', JSON.stringify(payload, null, 2));
 
     try {
-      const response = await fetch('https://n8n.fiftyai.mx/webhook-test/ai-assessment', {
+      const response = await fetch('https://n8n.fiftyai.mx/webhook/ai-assessment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
