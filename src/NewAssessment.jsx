@@ -125,100 +125,93 @@ function NewAssessment() {
   const [currentSectionIdx, setCurrentSectionIdx] = useState(0);
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [answers, setAnswers] = useState({});
-  const [contactInfo, setContactInfo] = useState({ email: '', phone: '' });
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [diagnostic, setDiagnostic] = useState(null);
 
   const currentSection = SECTIONS[currentSectionIdx];
-  const currentQuestion = currentSection.questions[currentQuestionIdx];
+  const currentQuestion = currentSection?.questions[currentQuestionIdx];
 
   const totalQuestions = SECTIONS.reduce((acc, section) => acc + section.questions.length, 0);
   const completedQuestions = SECTIONS.slice(0, currentSectionIdx).reduce((acc, s) => acc + s.questions.length, 0) + currentQuestionIdx;
 
-  const progress = (completedQuestions / (totalQuestions + 1)) * 100;
+  const progress = (completedQuestions / totalQuestions) * 100;
 
-  const handleNext = () => {
+  const submitAssessment = async (finalAnswers) => {
+    setLoading(true);
+
+    const payload = {
+      assessmentType: 'new_detailed',
+      ...finalAnswers,
+      submittedAt: new Date().toISOString()
+    };
+
+    try {
+      await fetch('https://n8n.fiftyai.mx/webhook-test/ai-assessment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+      setIsSubmitted(true);
+      setTimeout(() => {
+        window.location.reload();
+      }, 3000);
+    }
+  };
+
+  const handleNext = (newAnswers) => {
     if (currentQuestionIdx < currentSection.questions.length - 1) {
       setCurrentQuestionIdx(prev => prev + 1);
     } else if (currentSectionIdx < SECTIONS.length - 1) {
       setCurrentSectionIdx(prev => prev + 1);
       setCurrentQuestionIdx(0);
     } else {
-      setCurrentSectionIdx(SECTIONS.length); // Move to contact form
+      submitAssessment(newAnswers);
     }
   };
 
   const handleSingleSelect = (option) => {
-    setAnswers({ ...answers, [currentQuestion.id]: option });
-    handleNext();
+    const newAnswers = { ...answers, [currentQuestion.id]: option };
+    setAnswers(newAnswers);
+    handleNext(newAnswers);
   };
 
   const handleMultiSelect = (option) => {
     const currentAnswers = answers[currentQuestion.id] || [];
-    const newAnswers = currentAnswers.includes(option)
+    const newFieldAnswers = currentAnswers.includes(option)
       ? currentAnswers.filter(a => a !== option)
       : [...currentAnswers, option];
-    setAnswers({ ...answers, [currentQuestion.id]: newAnswers });
+    setAnswers({ ...answers, [currentQuestion.id]: newFieldAnswers });
   };
 
-  const handleContactChange = (e) => {
-    const { name, value } = e.target;
-    setContactInfo({ ...contactInfo, [name]: value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    const payload = {
-      assessmentType: 'new_detailed',
-      ...answers,
-      ...contactInfo,
-      submittedAt: new Date().toISOString()
-    };
-
-    try {
-      const response = await fetch('https://n8n.fiftyai.mx/webhook-test/ai-assessment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setDiagnostic(data.diagnostic || 'Gracias por completar el diagnóstico. Hemos enviado un análisis detallado en PDF a tu correo y teléfono.');
-        setIsSubmitted(true);
-      } else {
-        alert('Error al enviar. Por favor intenta de nuevo.');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      setDiagnostic('Gracias por completar el diagnóstico. En breve recibirás un análisis profesional de FiftyAI.mx en tu correo y mensaje.');
-      setIsSubmitted(true);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (isSubmitted) {
+  if (loading) {
     return (
       <div className="container">
-        <div className="glass-card">
-          <h1>¡Diagnóstico Completo!</h1>
-          <p className="subtitle">Análisis detallado de FiftyAI.mx</p>
-          <div className="results-container">
-            <div className="results-header">Diagnóstico Preliminar:</div>
-            <p>{diagnostic}</p>
-            <p style={{ marginTop: '2rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-              Un documento PDF completo ha sido enviado a <strong>{contactInfo.email}</strong> y vía mensaje al <strong>{contactInfo.phone}</strong>.
-            </p>
+        <div className="glass-card" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+          <h2>Enviando respuestas...</h2>
+          <div className="progress-bar" style={{ marginTop: '2rem' }}>
+            <div className="progress-fill" style={{ width: '100%', animation: 'pulse 1.5s infinite' }}></div>
           </div>
-          <button className="submit-btn" onClick={() => window.location.reload()}>Volver a empezar</button>
         </div>
       </div>
     );
   }
+
+  if (isSubmitted) {
+    return (
+      <div className="container">
+        <div className="glass-card" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+          <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: 'var(--primary)' }}>¡Gracias por llenar el cuestionario!</h1>
+          <p className="subtitle" style={{ fontSize: '1.2rem' }}>Tus respuestas han sido registradas exitosamente.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentQuestion) return null;
 
   return (
     <div className="container">
@@ -227,84 +220,48 @@ function NewAssessment() {
       </div>
 
       <div className="glass-card">
-        {currentSectionIdx < SECTIONS.length ? (
-          <>
-            <h1>{currentSection.title}</h1>
-            <p className="subtitle">Pregunta {completedQuestions + 1} de {totalQuestions}</p>
-            <h2 style={{ textAlign: 'center', marginBottom: '1.5rem' }}>{currentQuestion.text}</h2>
+        <h1>{currentSection.title}</h1>
+        <p className="subtitle">Pregunta {completedQuestions + 1} de {totalQuestions}</p>
+        <h2 style={{ textAlign: 'center', marginBottom: '1.5rem' }}>{currentQuestion.text}</h2>
 
-            {currentQuestion.type === 'single' ? (
-              <div className="button-grid">
-                {currentQuestion.options.map((option, idx) => (
+        {currentQuestion.type === 'single' ? (
+          <div className="button-grid">
+            {currentQuestion.options.map((option, idx) => (
+              <button
+                key={idx}
+                className="option-button"
+                onClick={() => handleSingleSelect(option)}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="multi-select-container">
+            <div className="button-grid">
+              {currentQuestion.options.map((option, idx) => {
+                const isSelected = (answers[currentQuestion.id] || []).includes(option);
+                return (
                   <button
                     key={idx}
-                    className="option-button"
-                    onClick={() => handleSingleSelect(option)}
+                    className={`option-button ${isSelected ? 'selected' : ''}`}
+                    onClick={() => handleMultiSelect(option)}
+                    style={isSelected ? { border: '2px solid var(--primary)', backgroundColor: 'rgba(99, 102, 241, 0.2)' } : {}}
                   >
                     {option}
                   </button>
-                ))}
-              </div>
-            ) : (
-              <div className="multi-select-container">
-                <div className="button-grid">
-                  {currentQuestion.options.map((option, idx) => {
-                    const isSelected = (answers[currentQuestion.id] || []).includes(option);
-                    return (
-                      <button
-                        key={idx}
-                        className={`option-button ${isSelected ? 'selected' : ''}`}
-                        onClick={() => handleMultiSelect(option)}
-                        style={isSelected ? { border: '2px solid var(--primary)', backgroundColor: 'rgba(99, 102, 241, 0.2)' } : {}}
-                      >
-                        {option}
-                      </button>
-                    );
-                  })}
-                </div>
-                <button
-                  className="submit-btn"
-                  style={{ marginTop: '2rem' }}
-                  onClick={handleNext}
-                  disabled={!(answers[currentQuestion.id] || []).length}
-                >
-                  Continuar
-                </button>
-              </div>
-            )}
-          </>
-        ) : (
-          <>
-            <h1>Paso Final</h1>
-            <p className="subtitle">Para enviarte tu diagnóstico personalizado</p>
-            <form onSubmit={handleSubmit}>
-              <div className="input-group">
-                <label className="input-label">Correo Electrónico</label>
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="ejemplo@empresa.com"
-                  required
-                  value={contactInfo.email}
-                  onChange={handleContactChange}
-                />
-              </div>
-              <div className="input-group">
-                <label className="input-label">Teléfono (WhatsApp)</label>
-                <input
-                  type="tel"
-                  name="phone"
-                  placeholder="+52 55 1234 5678"
-                  required
-                  value={contactInfo.phone}
-                  onChange={handleContactChange}
-                />
-              </div>
-              <button className="submit-btn" type="submit" disabled={loading}>
-                {loading ? 'Procesando...' : 'Obtener Diagnóstico'}
-              </button>
-            </form>
-          </>
+                );
+              })}
+            </div>
+            <button
+              className="submit-btn"
+              style={{ marginTop: '2rem' }}
+              onClick={() => handleNext(answers)}
+              disabled={!(answers[currentQuestion.id] || []).length}
+            >
+              Continuar
+            </button>
+          </div>
         )}
       </div>
       <p style={{ textAlign: 'center', marginTop: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
