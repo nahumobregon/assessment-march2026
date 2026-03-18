@@ -173,9 +173,6 @@ function NewAssessment() {
     } finally {
       setLoading(false);
       setIsSubmitted(true);
-      setTimeout(() => {
-        window.location.reload();
-      }, 3000);
     }
   };
 
@@ -223,6 +220,9 @@ function NewAssessment() {
         <div className="glass-card" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
           <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: 'var(--primary)' }}>¡Gracias por llenar el cuestionario!</h1>
           <p className="subtitle" style={{ fontSize: '1.2rem' }}>Tus respuestas han sido registradas exitosamente.</p>
+          <button className="submit-btn" style={{ marginTop: '2rem' }} onClick={() => window.location.reload()}>
+            Iniciar
+          </button>
         </div>
       </div>
     );
