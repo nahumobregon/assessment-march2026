@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import './App.css'
 
 const SECTIONS = [
@@ -57,13 +56,13 @@ const SECTIONS = [
         text: '¿Qué problemas enfrentas hoy?',
         type: 'multi',
         options: [
-          'Reportes tardados', 
-          'Mucho trabajo manual', 
-          'Errores en información', 
-          'Datos no conectados', 
-          'Dependencia de personas clave', 
-          'No sabemos cómo usar IA', 
-          'No tenemos visibilidad en tiempo real', 
+          'Reportes tardados',
+          'Mucho trabajo manual',
+          'Errores en información',
+          'Datos no conectados',
+          'Dependencia de personas clave',
+          'No sabemos cómo usar IA',
+          'No tenemos visibilidad en tiempo real',
           'Seguridad de datos'
         ]
       },
@@ -89,9 +88,9 @@ const SECTIONS = [
         text: '¿Para qué utilizas IA actualmente?',
         type: 'multi',
         options: [
-          'Redacción de correos', 'Creación de presentaciones', 'Resúmenes de documentos', 'Traducciones', 
-          'Búsqueda de información', 'Organización de ideas', 'Análisis de datos', 'Programación / código', 
-          'Automatización de tareas', 'Atención a clientes', 'Generación de contenido', 'Generación de reportes', 
+          'Redacción de correos', 'Creación de presentaciones', 'Resúmenes de documentos', 'Traducciones',
+          'Búsqueda de información', 'Organización de ideas', 'Análisis de datos', 'Programación / código',
+          'Automatización de tareas', 'Atención a clientes', 'Generación de contenido', 'Generación de reportes',
           'Creación de dashboards', 'Limpieza de datos', 'Investigación de mercado', 'Documentación de procesos'
         ]
       },
@@ -136,7 +135,7 @@ function NewAssessment() {
 
   const totalQuestions = SECTIONS.reduce((acc, section) => acc + section.questions.length, 0);
   const completedQuestions = SECTIONS.slice(0, currentSectionIdx).reduce((acc, s) => acc + s.questions.length, 0) + currentQuestionIdx;
-  
+
   const progress = (completedQuestions / (totalQuestions + 1)) * 100;
 
   const handleNext = () => {
@@ -188,14 +187,14 @@ function NewAssessment() {
 
       if (response.ok) {
         const data = await response.json();
-        setDiagnostic(data.diagnostic || 'Gracias por completar el diagnóstico detallado.');
+        setDiagnostic(data.diagnostic || 'Gracias por completar el diagnóstico. Hemos enviado un análisis detallado en PDF a tu correo y teléfono.');
         setIsSubmitted(true);
       } else {
         alert('Error al enviar. Por favor intenta de nuevo.');
       }
     } catch (error) {
       console.error('Error:', error);
-      setDiagnostic('Gracias por completar el diagnóstico. En breve recibirás un análisis profesional.');
+      setDiagnostic('Gracias por completar el diagnóstico. En breve recibirás un análisis profesional de FiftyAI.mx en tu correo y mensaje.');
       setIsSubmitted(true);
     } finally {
       setLoading(false);
@@ -209,8 +208,11 @@ function NewAssessment() {
           <h1>¡Diagnóstico Completo!</h1>
           <p className="subtitle">Análisis detallado de FiftyAI.mx</p>
           <div className="results-container">
-            <div className="results-header">Resumen:</div>
+            <div className="results-header">Diagnóstico Preliminar:</div>
             <p>{diagnostic}</p>
+            <p style={{ marginTop: '2rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+              Un documento PDF completo ha sido enviado a <strong>{contactInfo.email}</strong> y vía mensaje al <strong>{contactInfo.phone}</strong>.
+            </p>
           </div>
           <button className="submit-btn" onClick={() => window.location.reload()}>Volver a empezar</button>
         </div>
@@ -230,7 +232,7 @@ function NewAssessment() {
             <h1>{currentSection.title}</h1>
             <p className="subtitle">Pregunta {completedQuestions + 1} de {totalQuestions}</p>
             <h2 style={{ textAlign: 'center', marginBottom: '1.5rem' }}>{currentQuestion.text}</h2>
-            
+
             {currentQuestion.type === 'single' ? (
               <div className="button-grid">
                 {currentQuestion.options.map((option, idx) => (
@@ -260,8 +262,8 @@ function NewAssessment() {
                     );
                   })}
                 </div>
-                <button 
-                  className="submit-btn" 
+                <button
+                  className="submit-btn"
                   style={{ marginTop: '2rem' }}
                   onClick={handleNext}
                   disabled={!(answers[currentQuestion.id] || []).length}
@@ -305,10 +307,6 @@ function NewAssessment() {
           </>
         )}
       </div>
-      <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-        <Link to="/" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontSize: '0.9rem' }}>← Volver al inicio</Link>
-      </div>
-
       <p style={{ textAlign: 'center', marginTop: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
         Powered by <strong>fiftyai.mx</strong>
       </p>
