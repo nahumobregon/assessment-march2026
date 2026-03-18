@@ -145,14 +145,31 @@ function NewAssessment() {
       submittedAt: new Date().toISOString()
     };
 
+    console.log('🚀 [N8N DEBUG] Iniciando envío al webhook...');
+    console.log('📦 [N8N DEBUG] Datos a enviar (Payload):', JSON.stringify(payload, null, 2));
+
     try {
-      await fetch('https://n8n.fiftyai.mx/webhook-test/ai-assessment', {
+      const response = await fetch('https://n8n.fiftyai.mx/webhook-test/ai-assessment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
+
+      console.log(`📡 [N8N DEBUG] Respuesta recibida HTTP Status: ${response.status}`);
+
+      if (response.ok) {
+        console.log('✅ [N8N DEBUG] Comunicación EXITOSA. N8N recibió los datos.');
+        try {
+          const data = await response.json();
+          console.log('📄 [N8N DEBUG] Respuesta JSON de N8N:', data);
+        } catch (e) {
+          console.log('📄 [N8N DEBUG] N8N respondió exitosamente, pero no devolvió un cuerpo JSON de respuesta.');
+        }
+      } else {
+        console.error('❌ [N8N ERROR] Comunicación FALLIDA con N8N. Mensaje del servidor:', response.statusText);
+      }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('🛑 [N8N ERROR CRÍTICO] Hubo un problema conectando al servidor web de N8N (¿Problema de red o CORS?):', error);
     } finally {
       setLoading(false);
       setIsSubmitted(true);
