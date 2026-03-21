@@ -121,6 +121,13 @@ const SECTIONS = [
   }
 ];
 
+const Branding = () => (
+  <div className="branding-container">
+    <div className="branding-title">Fiftyai</div>
+    <div className="branding-subtitle">Te ayudamos en adopcion de IA</div>
+  </div>
+);
+
 function NewAssessment() {
   const [step, setStep] = useState('contact'); // 'contact' | 'questions'
   const [contactInfo, setContactInfo] = useState({ name: '', email: '', whatsapp: '' });
@@ -225,8 +232,9 @@ function NewAssessment() {
   if (loading) {
     return (
       <div className="container">
+        <Branding />
         <div className="glass-card" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
-          <h2>Enviando respuestas...</h2>
+          <h2 style={{ marginBottom: '1.5rem' }}>Enviando respuestas...</h2>
           <div className="progress-bar" style={{ marginTop: '2rem' }}>
             <div className="progress-fill" style={{ width: '100%', animation: 'pulse 1.5s infinite' }}></div>
           </div>
@@ -238,8 +246,9 @@ function NewAssessment() {
   if (isSubmitted) {
     return (
       <div className="container">
+        <Branding />
         <div className="glass-card" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
-          <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: 'var(--primary)' }}>¡Gracias por llenar el cuestionario!</h1>
+          <h2 style={{ fontSize: '2rem', marginBottom: '1rem', color: 'var(--primary)' }}>¡Gracias por llenar el cuestionario!</h2>
           <p className="subtitle" style={{ fontSize: '1.2rem' }}>Tus respuestas han sido registradas exitosamente.</p>
           <button className="submit-btn" style={{ marginTop: '2rem' }} onClick={() => window.location.reload()}>
             Iniciar otro diagnóstico
@@ -252,8 +261,9 @@ function NewAssessment() {
   if (step === 'contact') {
     return (
       <div className="container">
+        <Branding />
         <div className="glass-card" style={{ maxWidth: '500px', margin: '0 auto', textAlign: 'left' }}>
-          <h1 style={{ marginBottom: '1rem' }}>Información de Contacto</h1>
+          <h2 style={{ marginBottom: '1rem', textAlign: 'center' }}>Información de Contacto</h2>
           <p className="subtitle">Para generar y enviarte tu diagnóstico personalizado, por favor comparte tus datos.</p>
           
           <form onSubmit={handleContactSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}>
@@ -297,9 +307,6 @@ function NewAssessment() {
             </button>
           </form>
         </div>
-        <p style={{ textAlign: 'center', marginTop: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-          Powered by <strong>fiftyai.mx</strong>
-        </p>
       </div>
     );
   }
@@ -308,14 +315,15 @@ function NewAssessment() {
 
   return (
     <div className="container">
+      <Branding />
       <div className="progress-bar">
         <div className="progress-fill" style={{ width: `${progress}%` }}></div>
       </div>
 
       <div className="glass-card">
-        <h1>{currentSection.title}</h1>
+        <h2 style={{ textAlign: 'center', marginBottom: '1.5rem', fontSize: '2rem' }}>{currentSection.title}</h2>
         <p className="subtitle">Pregunta {completedQuestions + 1} de {totalQuestions}</p>
-        <h2 style={{ textAlign: 'center', marginBottom: '1.5rem' }}>{currentQuestion.text}</h2>
+        <h3 style={{ textAlign: 'center', marginBottom: '1.5rem' }}>{currentQuestion.text}</h3>
 
         {currentQuestion.type === 'single' ? (
           <div className="button-grid">
@@ -357,9 +365,6 @@ function NewAssessment() {
           </div>
         )}
       </div>
-      <p style={{ textAlign: 'center', marginTop: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-        Powered by <strong>fiftyai.mx</strong>
-      </p>
     </div>
   )
 }
